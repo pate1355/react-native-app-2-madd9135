@@ -68,7 +68,7 @@ export default function App() {
     axios
       .get(oneUserApi)
       .then((res) => {
-        setData((prevUsers) => [...prevUsers, res.data]);
+        setData((prevUsers) => [res.data, ...prevUsers]);
       })
       .catch((err) => {
         console.log(err);
