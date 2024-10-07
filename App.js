@@ -6,6 +6,7 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
+  RefreshControl,
 } from "react-native";
 import { React, useEffect, useState } from "react";
 import axios from "axios";
@@ -14,12 +15,16 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 export default function App() {
   const [data, setData] = useState([]);
-  // const [loading, setLoading] = useState(true);
+  const [refresh, setRefresh] = useState(false);
   const keyExtractor = (item) => item.uid.toString();
   const apiLink = "https://random-data-api.com/api/v2/users?size=20";
   const oneUserApi = "https://random-data-api.com/api/users/random_user";
 
   useEffect(() => {
+    fetchAllUser();
+  });
+
+  const fetchAllUser = () => {
     axios
       .get(apiLink)
       .then((res) => {
@@ -31,18 +36,32 @@ export default function App() {
       .catch((err) => {
         console.log(err);
       });
-  });
+  };
 
   //rendering the data
   const renderItem = ({ item, index }) => {
     return (
-      <View style={styles.grpCard}>
-        <Text>{index + 1}</Text>
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
-        <Text>First Name : {item.first_name}</Text>
-        <Text>Last Name :{item.last_name}</Text>
+      <View style={styles.outerContainer}>
+        <TouchableOpacity>
+          <View style={styles.grpCard}>
+            <View style={styles.imgContainer}>
+              <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            </View>
+            <Text style={styles.count}>{index + 1}</Text>
+            <View style={styles.txt}>
+              <Text>{item.first_name}</Text>
+              <Text>{item.last_name}</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
       </View>
     );
+  };
+
+  const onRefresh = async () => {
+    setRefresh(true);
+    await fetchAllUser();
+    setRefresh(false);
   };
 
   const fetchOneUser = () => {
@@ -56,6 +75,12 @@ export default function App() {
       });
   };
 
+  // const alertMsg = () => {
+  //   <View>
+  //     <Text>Loading...</Text>
+  //   </View>;
+  // };
+
   return (
     <SafeAreaProvider style={styles.container}>
       <SafeAreaView>
@@ -63,6 +88,14 @@ export default function App() {
           data={data}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
+          refreshControl={
+            <RefreshControl
+              refresh={refresh}
+              onRefresh={onRefresh}
+              // alertMsg={alertMsg}
+            />
+          }
+          alertTitle="Fetching Data"
         />
         {/* Floating Action Button */}
         <TouchableOpacity style={styles.fab} onPress={fetchOneUser}>
@@ -83,17 +116,46 @@ const styles = StyleSheet.create({
   avatar: {
     width: 50,
     height: 50,
-    borderRadius: 25,
   },
   grpCard: {
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-evenly",
+    padding: 30,
+    margin: 0,
+    borderBottomWidth: 1,
+    gap: 150,
+  },
+  // count: {
+  //   paddingLeft: 40,
+  // },
+  outerContainer: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingRight: 10,
+    paddingLeft: 15,
+  },
+  imgContainer: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "lightgrey",
+    borderRadius: 5,
+  },
+  txt: {
+    color: "black",
+    width: 75,
+    display: "flex",
+    flexDirection: "column",
   },
   fab: {
     position: "absolute",
-    right: 20,
-    bottom: 20,
+    right: 40,
+    bottom: 40,
     backgroundColor: "green",
     width: 60,
     height: 60,
